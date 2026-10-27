@@ -1,0 +1,70 @@
+# 시뮬레이터 웹서버 Deployment
+# - Red Hat UBI9 Apache httpd 이미지 (비루트, 8080 포트)
+# - 웹페이지(index.html)와 설정(params.json)은 ConfigMap 2개를 projected 볼륨으로 합쳐 /var/www/html에 마운트
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonar-sim
+  labels:
+    app: sonar-sim
+    app.kubernetes.io/part-of: sonar-sim
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sonar-sim
+  template:
+    metadata:
+      labels:
+        app: sonar-sim
+    spec:
+      containers:
+        - name: httpd
+          image: registry.access.redhat.com/ubi9/httpd-24:latest
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          # 프로세스가 살아 있는지 확인 (실패하면 컨테이너 재시작)
+          livenessProbe:
+            httpGet:
+              path: /index.html
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            failureThreshold: 3
+          # 설정 파일까지 정상 제공될 때만 트래픽을 받음
+          readinessProbe:
+            httpGet:
+              path: /params.json
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - name: web-content
+              mountPath: /var/www/html
+              readOnly: true
+      volumes:
+        - name: web-content
+          projected:
+            sources:
+              - configMap:
+                  name: sonar-sim-web
+              - configMap:
+                  name: sonar-sim-params

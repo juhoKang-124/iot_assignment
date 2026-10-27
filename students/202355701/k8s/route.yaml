@@ -1,0 +1,19 @@
+# 외부(브라우저)에서 접속하는 HTTPS 주소
+# host를 지정하지 않으면 OpenShift가 자동으로 주소를 만들어 줌
+# edge: Router에서 TLS를 종료하고 Pod로는 HTTP(8080)로 전달, http 요청은 https로 리다이렉트
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: sonar-sim
+  labels:
+    app: sonar-sim
+    app.kubernetes.io/part-of: sonar-sim
+spec:
+  to:
+    kind: Service
+    name: sonar-sim
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

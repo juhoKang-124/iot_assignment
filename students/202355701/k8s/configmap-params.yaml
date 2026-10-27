@@ -1,0 +1,56 @@
+# 시뮬레이션 설정 (src/params.json 내용)
+# 이 값만 바꿔서 다시 apply하면 이미지 변경 없이 동작이 바뀜
+# 예: classifier.enabled 를 false 로 바꾸면 분류 단계 없이 동작
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sonar-sim-params
+  labels:
+    app: sonar-sim
+    app.kubernetes.io/part-of: sonar-sim
+data:
+  params.json: |
+    {
+      "meta": {
+        "title": "능동소나 다층처리 시뮬레이터 설정",
+        "reference": "류영우, 김정구, 한국음향학회지 43(2), 225-233 (2024), doi:10.7776/ASK.2024.43.2.225",
+        "note": "합성 데이터 시연용 파라미터입니다. 논문에 제시된 수치를 근사 적용했습니다."
+      },
+      "display": {
+        "bearingCells": 128,
+        "rangeCells": 300,
+        "maxRangeKm": 10
+      },
+      "detection": {
+        "thresholdDb": 6,
+        "peakMean": 2000,
+        "peakStd": 150,
+        "noiseSnrScaleDb": 3.2,
+        "persistentClutter": 3
+      },
+      "target": {
+        "startBearing": 72,
+        "startRangeKm": 5.0,
+        "bearingRatePerPing": 0.12,
+        "rangeRateKmPerPing": -0.005,
+        "snrMeanDb": 33,
+        "snrStdDb": 5
+      },
+      "classifier": {
+        "enabled": true,
+        "targetMisclassRate": 0.059,
+        "nonTargetRemainRate": 0.052
+      },
+      "tracker": {
+        "initConfidence": 0.5,
+        "confidenceStep": 0.4,
+        "confirmHits": 2,
+        "gateBearingCells": 3,
+        "gateRangeKm": 0.15
+      },
+      "simulation": {
+        "maxPings": 220,
+        "pingIntervalMs": 700,
+        "seed": 2024
+      }
+    }
