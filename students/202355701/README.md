@@ -1,7 +1,5 @@
 # 능동소나 다층처리 시뮬레이터 (Active Sonar Multi-layer Processing Simulator)
 
-> 지능형IoT플랫폼 · 나만의 컨테이너 만들기 과제 · 202355701
-
 ## 1. 컨테이너 소개
 
 | 항목 | 내용 |
@@ -378,11 +376,24 @@ Pod 이름과 Service IP가 바뀌고 5개 리소스의 생성 시간이 같으�
 
 ## 7. AI·참고자료 활용 내역
 
+**역할 구분**
+
+| 작업 | 수행 |
+|---|---|
+| 논문 내용 정리와 주제 범위 결정 | 본인 |
+| 합성 데이터 시뮬레이터 구현 (논문 원본 데이터를 확보할 수 없어 논문 재현 대신 합성 데이터로 구현) | Claude |
+| 시뮬레이터 HTML/JS 작성 | Claude |
+| Deployment·Service·Route·ConfigMap YAML 작성 | Claude |
+| 수업 자료와 YAML 대조 점검 | Claude |
+| 단계별 경고·오류 메시지 분석 | 본인이 분석하고 Claude가 검증 |
+| README 초안 작성 | Claude |
+| Developer Sandbox 배포, 재배포 확인, 결과 캡처 | 본인 |
+
 **AI 도구**
 
 | 도구 | 용도 |
 |---|---|
-| Claude (Anthropic) | 논문 내용 정리와 주제 범위 결정(논문 재현 대신 합성 데이터 시뮬레이터로 구현), 시뮬레이터 HTML/JS 작성, Deployment·Service·Route·ConfigMap YAML 작성, 수업 자료와 YAML 대조 점검, Git·Sandbox 배포 절차 안내, 단계별 경고·오류 메시지 분석, README 작성 |
+| Claude (Anthropic) | 합성 데이터 시뮬레이터 구현(논문 재현 대신 합성 데이터로 구현), 시뮬레이터 HTML/JS 작성, Deployment·Service·Route·ConfigMap YAML 작성, 수업 자료와 YAML 대조 점검, 단계별 경고·오류 메시지 분석 결과 검증, README 초안 작성 |
 
 AI가 작성한 YAML은 본인 Developer Sandbox(`hjk774-naver-dev`)에 직접 배포해 Pod Running과 Route 접속을 확인했고, `oc delete -f k8s/` 후 `oc apply -f k8s/`로 재배포해 다시 정상 동작하는 것까지 확인했습니다(5.6절). YAML의 각 항목이 하는 일은 2.4절에 정리해 두었습니다.
 
