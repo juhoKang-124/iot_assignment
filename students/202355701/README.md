@@ -133,21 +133,21 @@ flowchart LR
 ## 4. 배포 방법
 
 ```bash
-# 1. Developer Sandbox 웹 콘솔 우측 상단 계정 메뉴 → Copy login command 로 로그인
+# 1. 로그인 (웹 콘솔 계정 메뉴 → Copy login command)
 oc login --token=<토큰> --server=<서버주소>
 
-# 2. 현재 프로젝트 확인 (YAML에 namespace가 없으므로 지금 선택된 프로젝트에 배포됨)
+# 2. 프로젝트 확인
 oc project
 
 # 3. 배포 (students/202355701 폴더에서 실행)
 oc apply -f k8s/
 
 # 4. 확인
-oc get pods                 # sonar-sim-xxxx 가 Running, READY 1/1
-oc get endpoints sonar-sim  # Pod IP:8080 이 연결되어 있는지
-oc get route sonar-sim      # HOST/PORT 열의 주소 확인
+oc get pods                 # 1/1 Running
+oc get endpoints sonar-sim  # Pod IP:8080 연결
+oc get route sonar-sim      # 접속 주소
 
-# 우리 리소스만 깔끔하게 보기 (ConfigMap 포함, 다른 리소스의 경고 없음)
+# 5. 배포 리소스만 조회 (ConfigMap 포함)
 oc get deployment,service,route,configmap,pod -l app=sonar-sim
 ```
 
@@ -172,8 +172,8 @@ oc apply -f k8s/
 - 페이지 아래 "현재 적용된 시뮬레이션 설정"을 펼쳤을 때 **"✓ params.json에서 설정을 불러왔습니다"** 가 보이면 ConfigMap이 정상 마운트된 것입니다.
 
 ```bash
-# curl 로 확인하는 경우
-curl -s https://<HOST>/params.json        # 설정 JSON 응답
+# curl로 확인
+curl -s https://<HOST>/params.json        # 설정 JSON
 curl -sI https://<HOST>/ | head -1        # HTTP/1.1 200 OK
 ```
 
@@ -189,12 +189,12 @@ oc apply -f k8s/
 **문제가 생겼을 때 확인 순서 (수업 실습 매뉴얼 방식)**
 
 ```bash
-oc get pods                                           # STATUS, RESTARTS 확인 (RESTARTS가 계속 늘면 기동 실패)
-oc describe pod -l app=sonar-sim | grep -A 3 Warning  # 경고 이벤트만 보기
+oc get pods                                           # 상태, 재시작 횟수
+oc describe pod -l app=sonar-sim | grep -A 3 Warning  # 경고 이벤트
 oc logs deploy/sonar-sim                              # httpd 로그
-oc get endpoints sonar-sim                            # Service와 Pod 연결 (비어 있으면 label/port 또는 Readiness 문제)
-oc describe quota                                     # Pending일 때 할당량 확인
-oc rollout undo deployment/sonar-sim                  # 잘못된 변경을 적용했을 때 이전 버전으로 되돌리기
+oc get endpoints sonar-sim                            # Service-Pod 연결
+oc describe quota                                     # 할당량
+oc rollout undo deployment/sonar-sim                  # 이전 버전으로 복구
 ```
 
 ## 5. 배포 결과
@@ -348,7 +348,7 @@ Pod 이름과 Service IP가 바뀌고 5개 리소스의 생성 시간이 같으�
 | `oc project` | `... on server "https://172.30.0.1:443"` | 오류 아님. 웹 터미널이 클러스터 **안에서** 실행되어 API 서버의 내부 주소로 연결된 것 | 프로젝트가 `hjk774-naver-dev`로 맞게 선택된 것만 확인 |
 | `oc get pods` (배포 직후) | `0/1 ContainerCreating` | 이미지를 내려받고 ConfigMap 볼륨을 붙이는 중 | 수십 초 뒤 `1/1 Running`. 함께 보인 `workspace...` Pod는 웹 터미널 자체 |
 | `oc get endpoints` | `Warning: v1 Endpoints is deprecated in v1.33+; use discovery.k8s.io/v1 EndpointSlice` | 조회에 쓰는 v1 Endpoints API가 Kubernetes 1.33부터 구식이 되었다는 안내. 제출한 YAML에는 Endpoints 리소스가 없음 | 결과 `10.128.17.0:8080`으로 Readiness 통과와 Service-Pod 연결을 확인. 경고 없는 조회는 `oc get endpointslices` |
-| `oc get all` | `DeploymentConfig is deprecated`, `VirtualMachineInstancePresets is now deprecated` 경고와 `Error from server (Forbidden): applications.app.k8s.io is forbidden` | `oc get all`이 여러 리소스 종류를 한꺼번에 조회하면서, 구식이 된 종류와 Sandbox 일반 사용자에게 조회 권한이 없는 종류에서 나온 메시지 | 우리 리소스는 정상 조회됨. 조회할 종류를 직접 지정(`oc get deployment,service,route,configmap,pod -l app=sonar-sim`)하면 메시지 없이 확인 가능 |
+| `oc get all` | `DeploymentConfig is deprecated`, `VirtualMachineInstancePresets is now deprecated` 경고와 `Error from server (Forbidden): applications.app.k8s.io is forbidden` | `oc get all`이 여러 리소스 종류를 한꺼번에 조회하면서, 구식이 된 종류와 Sandbox 일반 사용자에게 조회 권한이 없는 종류에서 나온 메시지 | sonar-sim 리소스는 정상 조회됨. 조회할 종류를 직접 지정(`oc get deployment,service,route,configmap,pod -l app=sonar-sim`)하면 메시지 없이 확인 가능 |
 | 재배포 중 삭제 확인 (`oc get all -l app=sonar-sim`) | `No resources found` 대신 위 Forbidden 오류만 출력 | 권한 오류가 출력되면서 "결과 없음" 문구가 표시되지 않아 삭제가 실패한 것처럼 보임 | 종류를 지정한 조회로 삭제를 확인한 뒤 `oc apply` 진행 |
 
 ### 6.3 Git 원격 저장소 경로와 로그인 계정 불일치 해결 (계정 전환)
